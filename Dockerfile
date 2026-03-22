@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y curl \
     && rm -rf /var/lib/apt/lists/*  # 清理缓存，减少镜像体积
 
 # 4. 将uv加入系统PATH（关键：确保能全局调用uv命令）
-ENV PATH="/root/.cargo/bin:$PATH"
+ENV PATH="/root/.local/bin:$PATH"
 
 # 5. 复制依赖配置文件（优先复制，利用Docker缓存：依赖不变时，无需重新安装）
 COPY pyproject.toml uv.lock* ./
