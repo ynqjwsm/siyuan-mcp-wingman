@@ -64,36 +64,40 @@
 
 ### 可用工具
 
+**笔记本管理**
 - `list_notebooks()` - 获取笔记本列表
 - `get_notebook_conf(notebook_id: str)` - 获取笔记本配置
 - `get_notebook_by_name(name: str)` - 根据名称获取笔记本
+
+**文档操作**
 - `create_doc_with_md(notebook_id: str, path: str, markdown: str)` - 使用 Markdown 创建文档
-- `full_text_search_block(query: str, notebook_id: Optional[str] = None, method: int = 0, types: Optional[dict] = None, path: Optional[str] = None)` - 全文搜索块
+
+**搜索功能**
+- `full_text_search_block(query: str, page_size: int = 50, notebook_id: Optional[str] = None, method: int = 0, orderBy: int = 0, types: Optional[dict] = None, path: Optional[str] = None)` - 全文搜索块
 - `search_block(query: str, notebook_id: Optional[str] = None)` - 搜索块
-- `search_tag(query: str = "")` - 搜索标签
-- `search_ref_block(query: str, notebook_id: Optional[str] = None, excluded_ids: Optional[List[str]] = None)` - 搜索引用块
-- `search_template(query: str = "")` - 搜索模板
-- `search_embedding_block(query: str, notebook_id: Optional[str] = None)` - 搜索嵌入块
-- `get_recent_updated_blocks()` - 获取最近更新的块
-- `get_recent_docs_by_usage()` - 根据使用频率获取最近文档
-- `get_docs_by_words(words: List[str])` - 根据关键词获取文档
+- `search_tag(keyword: str = "")` - 搜索标签
+- `search_ref_block(id: str, root_id: str, keyword: str, before_len: int, req_id: Optional[str] = None, is_square_brackets: bool = False, is_database: bool = False)` - 搜索引用块
+- `search_template(keyword: str = "")` - 搜索模板
+- `search_widget(keyword: str = "")` - 搜索小部件
+- `search_embed_block(embed_block_id: str, stmt: str, exclude_ids: Optional[List[str]] = None, heading_mode: int = 0, breadcrumb: bool = False)` - 搜索嵌入块
+- `get_embed_block(embed_block_id: str, include_ids: List[str], heading_mode: int = 0, breadcrumb: bool = False)` - 获取嵌入块
+
+**导出功能**
 - `export_md_content(doc_id: str)` - 导出 Markdown 内容
-- `export_md(doc_id: str)` - 导出 Markdown
-- `export_html(doc_id: str, save_assets: bool = False)` - 导出 HTML
 - `export_preview_html(doc_id: str, keep_lazy_load: bool = False)` - 导出预览 HTML
-- `export_siyuan_md(doc_id: str)` - 导出思源 Markdown
-- `version()` - 获取版本号
-- `get_current_time()` - 获取当前时间
+
+**系统管理**
+- `version()` - 获取思源版本号
+- `get_current_time()` - 获取思源服务器当前时间
 - `get_workspace_dir()` - 获取工作空间目录
 - `get_conf()` - 获取配置
-- `set_appearance_mode(mode: int)` - 设置外观模式
-- `get_sys_fonts()` - 获取系统字体
-- `get_workspace_acc()` - 获取工作空间账号
-- `get_changelog()` - 获取更新日志
+
+**大纲管理**
 - `get_doc_outline(doc_id: str)` - 获取文档大纲
+
+**同步管理**
 - `get_sync_info()` - 获取同步信息
-- `perform_sync(mode: int = 0)` - 执行同步
-- `get_cloud_space()` - 获取云端空间
+- `perform_sync(mode: str = "0")` - 执行同步
 
 ## 技术栈
 

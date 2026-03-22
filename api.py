@@ -114,9 +114,12 @@ class SiyuanAPI:
             "markdown": markdown
         })  
 
+    # ==================== 搜索相关 API ====================
+
     def full_text_search_block(
         self,
         query: str,
+        page_size: int = 50,
         notebook_id: Optional[str] = None,
         method: int = 0,
         orderBy: int = 0,
@@ -128,6 +131,7 @@ class SiyuanAPI:
 
         Args:
             query: 搜索关键词
+            page_size: 每页数量
             notebook_id: 笔记本 ID
             method: 搜索方法，0：关键字，1：查询语法，2：SQL，3：正则表达式
             orderBy: 排序字段，0：按相关度降序，1：按相关度升序，2：按更新时间升序，3：按更新时间降序
@@ -137,7 +141,7 @@ class SiyuanAPI:
         Returns:
             搜索结果列表
         """
-        payload = {"query": query, "method": method}
+        payload = {"query": query, "pageSize": page_size, "method": method}
         if orderBy:
             payload["orderBy"] = orderBy
         if notebook_id:
@@ -164,96 +168,145 @@ class SiyuanAPI:
             payload["notebook"] = notebook_id
         return self._request("POST", "/api/search/searchBlock", payload)
 
-    def search_tag(self, query: str = "") -> dict:
+    def search_tag(self, keyword: str = "") -> dict:
         """
         搜索标签
 
         Args:
-            query: 搜索关键词
+            keyword: 搜索关键词
 
         Returns:
             标签列表
         """
-        return self._request("POST", "/api/search/searchTag", {"query": query})
+        return self._request("POST", "/api/search/searchTag", {"k": keyword})
 
-    def search_ref_block(self, query: str, notebook_id: Optional[str] = None, excluded_ids: Optional[list] = None) -> dict:
+    def search_ref_block(
+        self,
+        id: str,
+        root_id: str,
+        keyword: str,
+        before_len: int,
+        req_id: Optional[str] = None,
+        is_square_brackets: bool = False,
+        is_database: bool = False
+    ) -> dict:
         """
         搜索引用块
 
         Args:
-            query: 搜索关键词
-            notebook_id: 笔记本 ID
-            excluded_ids: 排除的块 ID 列表
+            id: 块 ID
+            root_id: 根 ID
+            keyword: 搜索关键词
+            before_len: 前置长度
+            req_id: 请求 ID
+            is_square_brackets: 是否方括号
+            is_database: 是否数据库
 
         Returns:
-            搜索结果列表
+            包含 blocks、newDoc、k、reqId 的字典
         """
-        payload = {"query": query}
-        if notebook_id:
-            payload["notebook"] = notebook_id
-        if excluded_ids:
-            payload["excludeIDs"] = excluded_ids
+        payload = {
+            "id": id,
+            "rootID": root_id,
+            "k": keyword,
+            "beforeLen": before_len,
+            "isSquareBrackets": is_square_brackets,
+            "isDatabase": is_database
+        }
+        if req_id:
+            payload["reqId"] = req_id
         return self._request("POST", "/api/search/searchRefBlock", payload)
 
-    def search_template(self, query: str = "") -> list:
+    def search_template(self, keyword: str = "") -> dict:
         """
         搜索模板
 
         Args:
-            query: 搜索关键词
+            keyword: 搜索关键词
 
         Returns:
             模板列表
         """
-        return self._request("POST", "/api/search/searchTemplate", {"query": query})
+        return self._request("POST", "/api/search/searchTemplate", {"k": keyword})
 
-    def search_embedding_block(self, query: str, notebook_id: Optional[str] = None) -> list:
+    def search_widget(self, keyword: str = "") -> dict:
+        """
+        搜索小部件
+
+        Args:
+            keyword: 搜索关键词
+
+        Returns:
+            小部件列表
+        """
+        return self._request("POST", "/api/search/searchWidget", {"k": keyword})
+
+    def search_embed_block(
+        self,
+        embed_block_id: str,
+        stmt: str,
+        exclude_ids: Optional[list] = None,
+        heading_mode: int = 0,
+        breadcrumb: bool = False
+    ) -> dict:
         """
         搜索嵌入块
 
         Args:
-            query: 搜索关键词
-            notebook_id: 笔记本 ID
+            embed_block_id: 嵌入块 ID
+            stmt: SQL 查询语句
+            exclude_ids: 排除的块 ID 列表
+            heading_mode: 标题模式，0：显示标题与下方的块，1：仅显示标题，2：仅显示标题下方的块
+            breadcrumb: 是否显示面包屑
 
         Returns:
-            搜索结果列表
+            包含 blocks 的字典
         """
-        payload = {"query": query}
-        if notebook_id:
-            payload["notebook"] = notebook_id
-        return self._request("POST", "/api/search/searchEmbeddingBlock", payload)
+        payload = {
+            "embedBlockID": embed_block_id,
+            "stmt": stmt,
+            "headingMode": heading_mode,
+            "breadcrumb": breadcrumb
+        }
+        if exclude_ids:
+            payload["excludeIDs"] = exclude_ids
+        return self._request("POST", "/api/search/searchEmbedBlock", payload)
 
-    def get_recent_updated_blocks(self) -> list:
+    def get_embed_block(
+        self,
+        embed_block_id: str,
+        include_ids: list,
+        heading_mode: int = 0,
+        breadcrumb: bool = False
+    ) -> dict:
         """
-        获取最近更新的块
-
-        Returns:
-            最近更新的块列表
-        """
-        return self._request("POST", "/api/search/getRecentUpdatedBlocks")
-
-    def get_recent_docs_by_usage(self) -> list:
-        """
-        根据使用频率获取最近文档
-
-        Returns:
-            最近文档列表
-        """
-        return self._request("POST", "/api/search/getRecentDocsByUsage")
-
-    def get_docs_by_words(self, words: list[str]) -> list:
-        """
-        根据关键词获取文档
+        获取嵌入块
 
         Args:
-            words: 关键词列表
+            embed_block_id: 嵌入块 ID
+            include_ids: 包含的块 ID 列表
+            heading_mode: 标题模式，0：显示标题与下方的块，1：仅显示标题，2：仅显示标题下方的块
+            breadcrumb: 是否显示面包屑
 
         Returns:
-            文档列表
+            包含 blocks 的字典
         """
-        return self._request("POST", "/api/search/getDocsByWords", {"words": words})
+        payload = {
+            "embedBlockID": embed_block_id,
+            "includeIDs": include_ids,
+            "headingMode": heading_mode,
+            "breadcrumb": breadcrumb
+        }
+        return self._request("POST", "/api/search/getEmbedBlock", payload)
 
-    def export_md_content(self, doc_id: str) -> dict:
+    # ==================== 导出相关 API ====================
+
+    def export_md_content(self,
+        method: int = 0,
+        orderBy: int = 0,
+        types: Optional[dict] = None,
+        path: Optional[str] = None
+    ) -> dict:
         """
         导出 Markdown 内容
 
@@ -264,34 +317,6 @@ class SiyuanAPI:
             Markdown 内容
         """
         return self._request("POST", "/api/export/exportMdContent", {"id": doc_id})
-
-    def export_md(self, doc_id: str) -> str:
-        """
-        导出 Markdown
-
-        Args:
-            doc_id: 文档 ID
-
-        Returns:
-            Markdown 文本
-        """
-        return self._request("POST", "/api/export/exportMd", {"id": doc_id})
-
-    def export_html(self, doc_id: str, save_assets: bool = False) -> str:
-        """
-        导出 HTML
-
-        Args:
-            doc_id: 文档 ID
-            save_assets: 是否保存资源
-
-        Returns:
-            HTML 内容
-        """
-        return self._request("POST", "/api/export/exportHTML", {
-            "id": doc_id,
-            "saveAssets": save_assets
-        })
 
     def export_preview_html(self, doc_id: str, keep_lazy_load: bool = False) -> str:
         """
@@ -309,98 +334,47 @@ class SiyuanAPI:
             "keepLazyLoad": keep_lazy_load
         })
 
-    def export_siyuan_md(self, doc_id: str) -> str:
-        """
-        导出思源 Markdown
-
-        Args:
-            doc_id: 文档 ID
-
-        Returns:
-            Markdown 内容
-        """
-        return self._request("POST", "/api/export/exportSY", {"id": doc_id})
-
     # ==================== 系统相关 API ====================
 
-    def version(self) -> str:
+    def version(self) -> dict:
         """
-        获取版本号
+        获取思源版本号
 
         Returns:
-            版本号
+            思源版本字典
         """
         return self._request("POST", "/api/system/version")
 
-    def get_current_time(self) -> int:
+    def get_current_time(self) -> dict:
         """
-        获取当前时间
+        获取思源服务器当前时间
 
         Returns:
-            当前时间戳
+            思源服务器当前时间戳字典对象
         """
         return self._request("POST", "/api/system/currentTime")
 
-    def get_workspace_dir(self) -> str:
+    def get_workspace_dir(self) -> dict:
         """
         获取工作空间目录
 
         Returns:
-            工作空间目录
+            工作空间目录字典对象
         """
         return self._request("POST", "/api/system/getWorkspaces")
 
     def get_conf(self) -> dict:
         """
-        获取配置
+        获取思源配置
 
         Returns:
-            配置字典
+            思源配置字典对象
         """
         return self._request("POST", "/api/system/getConf")
 
-    def set_appearance_mode(self, mode: int) -> dict:
-        """
-        设置外观模式
-
-        Args:
-            mode: 模式，0：自动，1：亮色，2：暗色
-
-        Returns:
-            设置结果
-        """
-        return self._request("POST", "/api/system/setAppearanceMode", {"mode": mode})
-
-    def get_sys_fonts(self) -> list:
-        """
-        获取系统字体
-
-        Returns:
-            字体列表
-        """
-        return self._request("POST", "/api/system/getSysFonts")
-
-    def get_workspace_acc(self) -> dict:
-        """
-        获取工作空间账号
-
-        Returns:
-            账号信息
-        """
-        return self._request("POST", "/api/system/getWorkspaceAcc")
-
-    def get_changelog(self) -> str:
-        """
-        获取更新日志
-
-        Returns:
-            更新日志
-        """
-        return self._request("POST", "/api/system/getChangelog")
-
     # ==================== 大纲相关 API ====================
 
-    def get_doc_outline(self, doc_id: str) -> list:
+    def get_doc_outline(self, doc_id: str) -> dict:
         """
         获取文档大纲
 
@@ -408,7 +382,7 @@ class SiyuanAPI:
             doc_id: 文档 ID
 
         Returns:
-            大纲列表
+            大纲字典对象
         """
         return self._request("POST", "/api/outline/getDocOutline", {"id": doc_id})
 
@@ -434,12 +408,3 @@ class SiyuanAPI:
             同步结果
         """
         return self._request("POST", "/api/sync/performSync", {"mode": mode})
-
-    def get_cloud_space(self) -> dict:
-        """
-        获取云端空间
-
-        Returns:
-            云端空间信息
-        """
-        return self._request("POST", "/api/sync/getCloudSpace")

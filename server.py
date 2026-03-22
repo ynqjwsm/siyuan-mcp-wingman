@@ -6,7 +6,7 @@ from api import SiyuanAPI, SiyuanAPIError
 mcp = FastMCP("siyuan-wingman")
 
 siyuan_url = os.getenv("SIYUAN_URL", "http://127.0.0.1:6806")
-siyuan_token = os.getenv("SIYUAN_TOKEN", "isbpqifdo2jv0cbc")
+siyuan_token = os.getenv("SIYUAN_TOKEN", "this-is-a-token-here")
 
 siyuan_api = SiyuanAPI(siyuan_url, siyuan_token)
 
@@ -78,9 +78,12 @@ def create_doc_with_md(notebook_id: str, path: str, markdown: str) -> dict:
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
+# 搜索相关 API
+
 @mcp.tool
 def full_text_search_block(
     query: str,
+    page_size: int = 50,
     notebook_id: Optional[str] = None,
     method: int = 0,
     orderBy: int = 0,
@@ -92,6 +95,7 @@ def full_text_search_block(
 
     Args:
         query: 搜索关键词
+        page_size: 每页数量
         notebook_id: 笔记本 ID
         method: 搜索方法，0：关键字，1：查询语法，2：SQL，3：正则表达式
         orderBy: 排序字段，0：按相关度降序，1：按相关度升序，2：按更新时间升序，3：按更新时间降序
@@ -102,7 +106,7 @@ def full_text_search_block(
         搜索结果列表
     """
     try:
-        return siyuan_api.full_text_search_block(query, notebook_id, method, orderBy, types, path)
+        return siyuan_api.full_text_search_block(query, page_size, notebook_id, method, orderBy, types, path)
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
@@ -124,117 +128,134 @@ def search_block(query: str, notebook_id: Optional[str] = None) -> dict:
         return {"error": str(e)}
 
 @mcp.tool
-def search_tag(query: str = "") -> dict:
+def search_tag(keyword: str = "") -> dict:
     """
     搜索标签
 
     Args:
-        query: 搜索关键词
+        keyword: 搜索关键词
 
     Returns:
         标签列表
     """
     try:
-        return siyuan_api.search_tag(query)
+        return siyuan_api.search_tag(keyword)
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
 @mcp.tool
 def search_ref_block(
-    query: str,
-    notebook_id: Optional[str] = None,
-    excluded_ids: Optional[List[str]] = None
+    id: str,
+    root_id: str,
+    keyword: str,
+    before_len: int,
+    req_id: Optional[str] = None,
+    is_square_brackets: bool = False,
+    is_database: bool = False
 ) -> dict:
     """
     搜索引用块
 
     Args:
-        query: 搜索关键词
-        notebook_id: 笔记本 ID
-        excluded_ids: 排除的块 ID 列表
+        id: 块 ID
+        root_id: 根 ID
+        keyword: 搜索关键词
+        before_len: 前置长度
+        req_id: 请求 ID
+        is_square_brackets: 是否方括号
+        is_database: 是否数据库
 
     Returns:
-        搜索结果列表
+        包含 blocks、newDoc、k、reqId 的字典
     """
     try:
-        return siyuan_api.search_ref_block(query, notebook_id, excluded_ids)
+        return siyuan_api.search_ref_block(id, root_id, keyword, before_len, req_id, is_square_brackets, is_database)
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
 @mcp.tool
-def search_template(query: str = "") -> list:
+def search_template(keyword: str = "") -> dict:
     """
     搜索模板
 
     Args:
-        query: 搜索关键词
+        keyword: 搜索关键词
 
     Returns:
         模板列表
     """
     try:
-        return siyuan_api.search_template(query)
+        return siyuan_api.search_template(keyword)
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
 @mcp.tool
-def search_embedding_block(query: str, notebook_id: Optional[str] = None) -> list:
+def search_widget(keyword: str = "") -> dict:
+    """
+    搜索小部件
+
+    Args:
+        keyword: 搜索关键词
+
+    Returns:
+        小部件列表
+    """
+    try:
+        return siyuan_api.search_widget(keyword)
+    except SiyuanAPIError as e:
+        return {"error": str(e)}
+
+@mcp.tool
+def search_embed_block(
+    embed_block_id: str,
+    stmt: str,
+    exclude_ids: Optional[List[str]] = None,
+    heading_mode: int = 0,
+    breadcrumb: bool = False
+) -> dict:
     """
     搜索嵌入块
 
     Args:
-        query: 搜索关键词
-        notebook_id: 笔记本 ID
+        embed_block_id: 嵌入块 ID
+        stmt: SQL 查询语句
+        exclude_ids: 排除的块 ID 列表
+        heading_mode: 标题模式，0：显示标题与下方的块，1：仅显示标题，2：仅显示标题下方的块
+        breadcrumb: 是否显示面包屑
 
     Returns:
-        搜索结果列表
+        包含 blocks 的字典
     """
     try:
-        return siyuan_api.search_embedding_block(query, notebook_id)
+        return siyuan_api.search_embed_block(embed_block_id, stmt, exclude_ids, heading_mode, breadcrumb)
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
 @mcp.tool
-def get_recent_updated_blocks() -> list:
+def get_embed_block(
+    embed_block_id: str,
+    include_ids: List[str],
+    heading_mode: int = 0,
+    breadcrumb: bool = False
+) -> dict:
     """
-    获取最近更新的块
-
-    Returns:
-        最近更新的块列表
-    """
-    try:
-        return siyuan_api.get_recent_updated_blocks()
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def get_recent_docs_by_usage() -> list:
-    """
-    根据使用频率获取最近文档
-
-    Returns:
-        最近文档列表
-    """
-    try:
-        return siyuan_api.get_recent_docs_by_usage()
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def get_docs_by_words(words: List[str]) -> list:
-    """
-    根据关键词获取文档
+    获取嵌入块
 
     Args:
-        words: 关键词列表
+        embed_block_id: 嵌入块 ID
+        include_ids: 包含的块 ID 列表
+        heading_mode: 标题模式，0：显示标题与下方的块，1：仅显示标题，2：仅显示标题下方的块
+        breadcrumb: 是否显示面包屑
 
     Returns:
-        文档列表
+        包含 blocks 的字典
     """
     try:
-        return siyuan_api.get_docs_by_words(words)
+        return siyuan_api.get_embed_block(embed_block_id, include_ids, heading_mode, breadcrumb)
     except SiyuanAPIError as e:
         return {"error": str(e)}
+
+## 导出相关 API
 
 @mcp.tool
 def export_md_content(doc_id: str) -> dict:
@@ -249,39 +270,6 @@ def export_md_content(doc_id: str) -> dict:
     """
     try:
         return siyuan_api.export_md_content(doc_id)
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def export_md(doc_id: str) -> str:
-    """
-    导出 Markdown
-
-    Args:
-        doc_id: 文档 ID
-
-    Returns:
-        Markdown 文本
-    """
-    try:
-        return siyuan_api.export_md(doc_id)
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def export_html(doc_id: str, save_assets: bool = False) -> str:
-    """
-    导出 HTML
-
-    Args:
-        doc_id: 文档 ID
-        save_assets: 是否保存资源
-
-    Returns:
-        HTML 内容
-    """
-    try:
-        return siyuan_api.export_html(doc_id, save_assets)
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
@@ -302,29 +290,15 @@ def export_preview_html(doc_id: str, keep_lazy_load: bool = False) -> str:
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
-@mcp.tool
-def export_siyuan_md(doc_id: str) -> str:
-    """
-    导出思源 Markdown
-
-    Args:
-        doc_id: 文档 ID
-
-    Returns:
-        Markdown 内容
-    """
-    try:
-        return siyuan_api.export_siyuan_md(doc_id)
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
+## 系统相关 API
 
 @mcp.tool
-def version() -> str:
+def version() -> dict:
     """
-    获取版本号
+    获取思源版本号
 
     Returns:
-        版本号
+        思源版本字典对象
     """
     try:
         return siyuan_api.version()
@@ -332,12 +306,12 @@ def version() -> str:
         return {"error": str(e)}
 
 @mcp.tool
-def get_current_time() -> int:
+def get_current_time() -> dict:
     """
-    获取当前时间
+    获取思源服务器当前时间
 
     Returns:
-        当前时间戳
+        思源服务器当前时间戳字典对象
     """
     try:
         return siyuan_api.get_current_time()
@@ -345,12 +319,12 @@ def get_current_time() -> int:
         return {"error": str(e)}
 
 @mcp.tool
-def get_workspace_dir() -> str:
+def get_workspace_dir() -> dict:
     """
     获取工作空间目录
 
     Returns:
-        工作空间目录
+        工作空间目录字典对象
     """
     try:
         return siyuan_api.get_workspace_dir()
@@ -363,70 +337,17 @@ def get_conf() -> dict:
     获取配置
 
     Returns:
-        配置字典
+        配置字典对象
     """
     try:
         return siyuan_api.get_conf()
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
-@mcp.tool
-def set_appearance_mode(mode: int) -> dict:
-    """
-    设置外观模式
-
-    Args:
-        mode: 模式，0：自动，1：亮色，2：暗色
-
-    Returns:
-        设置结果
-    """
-    try:
-        return siyuan_api.set_appearance_mode(mode)
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
+## 大纲相关 API
 
 @mcp.tool
-def get_sys_fonts() -> list:
-    """
-    获取系统字体
-
-    Returns:
-        字体列表
-    """
-    try:
-        return siyuan_api.get_sys_fonts()
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def get_workspace_acc() -> dict:
-    """
-    获取工作空间账号
-
-    Returns:
-        账号信息
-    """
-    try:
-        return siyuan_api.get_workspace_acc()
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def get_changelog() -> str:
-    """
-    获取更新日志
-
-    Returns:
-        更新日志
-    """
-    try:
-        return siyuan_api.get_changelog()
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def get_doc_outline(doc_id: str) -> list:
+def get_doc_outline(doc_id: str) -> dict:
     """
     获取文档大纲
 
@@ -434,12 +355,14 @@ def get_doc_outline(doc_id: str) -> list:
         doc_id: 文档 ID
 
     Returns:
-        大纲列表
+        大纲字典对象
     """
     try:
         return siyuan_api.get_doc_outline(doc_id)
     except SiyuanAPIError as e:
         return {"error": str(e)}
+
+## 同步相关 API
 
 @mcp.tool
 def get_sync_info() -> dict:
@@ -467,19 +390,6 @@ def perform_sync(mode: str = "0") -> dict:
     """
     try:
         return siyuan_api.perform_sync(mode)
-    except SiyuanAPIError as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def get_cloud_space() -> dict:
-    """
-    获取云端空间
-
-    Returns:
-        云端空间信息
-    """
-    try:
-        return siyuan_api.get_cloud_space()
     except SiyuanAPIError as e:
         return {"error": str(e)}
 
