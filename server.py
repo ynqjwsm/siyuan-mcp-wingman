@@ -83,6 +83,7 @@ def full_text_search_block(
     query: str,
     notebook_id: Optional[str] = None,
     method: int = 0,
+    orderBy: int = 0,
     types: Optional[dict] = None,
     path: Optional[str] = None
 ) -> dict:
