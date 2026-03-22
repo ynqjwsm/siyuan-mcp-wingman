@@ -17,7 +17,7 @@ COPY pyproject.toml uv.lock* ./
 
 # 6. 安装项目依赖（--system：安装到系统Python环境，容器中无需虚拟环境）
 # --prod：仅安装生产依赖（跳过开发依赖，如pytest、black等）
-RUN uv pip install --prod --system .
+RUN uv pip install --system --group main .
 
 # 7. 复制项目源码（依赖安装后再复制源码，源码变更不触发依赖重装）
 COPY . .
