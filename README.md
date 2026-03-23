@@ -51,27 +51,27 @@
 2. 运行容器(DockerCompose)[推荐]
    ```yaml
    version: "3.9"
-services:
-  siyuan:
-    image: b3log/siyuan:v3.6.1
-    command: ['--workspace=/siyuan/workspace/', '--accessAuthCode=auth-code-here']
-    ports:
-      - 6806:6806
-    volumes:
-      - ./siyuan/workspace:/siyuan/workspace
-    restart: unless-stopped
-    environment:
-      - TZ=Asia/Shanghai
-      - PUID=1000  # 自定义用户 ID
-      - PGID=1000  # 自定义组 ID
-  wingman:
-    image: brantwang/siyuan-mcp-wingman:v0.0.9
-    ports:
-      - 6808:8000
-    restart: unless-stopped
-    environment:
-      - SIYUAN_TOKEN=your-token-here
-      - SIYUAN_URL=http://siyuan:6806
+    services:
+      siyuan:
+        image: b3log/siyuan:v3.6.1
+        command: ['--workspace=/siyuan/workspace/', '--accessAuthCode=auth-code-here']
+        ports:
+          - 6806:6806
+        volumes:
+          - ./siyuan/workspace:/siyuan/workspace
+        restart: unless-stopped
+        environment:
+          - TZ=Asia/Shanghai
+          - PUID=1000  # 自定义用户 ID
+          - PGID=1000  # 自定义组 ID
+      wingman:
+        image: brantwang/siyuan-mcp-wingman:v0.0.9
+        ports:
+          - 6808:8000
+        restart: unless-stopped
+        environment:
+          - SIYUAN_TOKEN=your-token-here
+          - SIYUAN_URL=http://siyuan:6806
    ```
 Compose启动后使用CherryStudio连接MCP服务端点：`http://your-server:6808/mcp`,类型为`可流式传输的HTTP(streamableHttp)`
 
