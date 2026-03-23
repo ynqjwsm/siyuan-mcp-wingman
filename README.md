@@ -49,6 +49,12 @@
      brantwang/siyuan-mcp-wingman:v0.0.9
    ```
 2. 运行容器(DockerCompose)[推荐]
+
+**部署逻辑**
+![topology](./images/siyuan-compose.png)
+
+**compose 配置文件**
+
    ```yaml
    version: "3.9"
     services:
