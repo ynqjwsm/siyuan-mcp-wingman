@@ -41,26 +41,53 @@
 
 ### 方法二：Docker 部署
 
-1. 运行容器
+1. 运行容器(命令)
    ```bash
    docker run -d --name siyuan-mcp -p 8000:8000 \
      -e SIYUAN_URL=http://your-siyuan-server:6806 \
      -e SIYUAN_TOKEN=your-actual-token \
-     brantwang/siyuan-mcp-wingman:v0.0.7
+     brantwang/siyuan-mcp-wingman:v0.0.9
    ```
+2. 运行容器(DockerCompose)[推荐]
+   ```yaml
+   version: "3.9"
+services:
+  siyuan:
+    image: b3log/siyuan:v3.6.1
+    command: ['--workspace=/siyuan/workspace/', '--accessAuthCode=auth-code-here']
+    ports:
+      - 6806:6806
+    volumes:
+      - ./siyuan/workspace:/siyuan/workspace
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - PUID=1000  # 自定义用户 ID
+      - PGID=1000  # 自定义组 ID
+  wingman:
+    image: brantwang/siyuan-mcp-wingman:v0.0.9
+    ports:
+      - 6808:8000
+    restart: unless-stopped
+    environment:
+      - SIYUAN_TOKEN=your-token-here
+      - SIYUAN_URL=http://siyuan:6806
+   ```
+Compose启动后使用CherryStudio连接MCP服务端点：`http://your-server:6808/mcp`,类型为`可流式传输的HTTP(streamableHttp)`
+
 
 ## 环境变量配置
 
 | 环境变量 | 描述 | 默认值 |
 |---------|------|--------|
-| SIYUAN_URL | 思源服务器地址 | http://127.0.0.1:6806 |
-| SIYUAN_TOKEN | 认证令牌 | isbpqifdo2jv0cbc |
+| SIYUAN_URL | 思源服务器地址 | http://your-siyuan-server:6806 |
+| SIYUAN_TOKEN | 认证令牌 | your-token-here |
 
 ## 使用方法
 
 ### MCP 服务端点
 
-服务启动后，MCP 端点地址为：`http://localhost:8000/mcp`
+服务启动后，MCP 端点地址为：`http://your-server:6808/mcp`
 
 ### 可用工具
 
