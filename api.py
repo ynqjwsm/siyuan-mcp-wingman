@@ -302,10 +302,7 @@ class SiyuanAPI:
     # ==================== 导出相关 API ====================
 
     def export_md_content(self,
-        method: int = 0,
-        orderBy: int = 0,
-        types: Optional[dict] = None,
-        path: Optional[str] = None
+        doc_id: str
     ) -> dict:
         """
         导出 Markdown 内容
